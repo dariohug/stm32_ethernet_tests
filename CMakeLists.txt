@@ -62,6 +62,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/cmd_server.c
+    Core/Src/eth_log.c
 )
 
 # Add include paths

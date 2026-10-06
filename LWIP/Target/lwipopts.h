@@ -105,6 +105,13 @@
 extern uint8_t _eth_ram_end;
 #undef LWIP_RAM_HEAP_POINTER
 #define LWIP_RAM_HEAP_POINTER (&_eth_ram_end)
+
+/* Serial activity log: LwIP #includes LWIP_HOOK_FILENAME into every source
+ * that provides a hook, which is how EthLog_Ip4Input gets declared there.
+ * The hook observes inbound IPv4 packets and always returns 0 (never eats
+ * one), so it can't change what the stack does with a packet. */
+#define LWIP_HOOK_FILENAME "eth_log.h"
+#define LWIP_HOOK_IP4_INPUT(p, inp) EthLog_Ip4Input((p), (inp))
 /* USER CODE END 1 */
 
 #ifdef __cplusplus

@@ -27,4 +27,6 @@ Thumbs.db
 *.swp
 *~
 .vscode/
-.claude/ 
+
+# AI assistant files (Claude Code memory/instructions, agent notes, etc.)
+.claude/
