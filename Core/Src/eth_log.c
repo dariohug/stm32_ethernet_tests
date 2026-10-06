@@ -20,7 +20,7 @@ extern UART_HandleTypeDef huart3;
 #define ETH_LOG_PING_MIN_GAP_MS 200U
 #define ETH_LOG_SUMMARY_MS      1000U
 
-static uint32_t icmp_pkts, tcp_pkts, udp_pkts, other_pkts, rx_bytes;
+static uint32_t icmp_pkts, tcp_pkts, udp_pkts, ptp_pkts, other_pkts, rx_bytes;
 static uint32_t window_start_ms, last_ping_ms;
 static uint8_t have_activity;
 
@@ -56,6 +56,21 @@ int EthLog_Ip4Input(struct pbuf *p, struct netif *inp)
   ip4_addr_copy(src, hdr->src);
 
   rx_bytes += p->tot_len;
+
+  /* PTP (udp/319,320) arrives several times a second forever once a master
+   * runs; it's counted but doesn't by itself make the link "active", or the
+   * summary line would print every second for good. */
+  uint16_t hlen = IPH_HL_BYTES(hdr);
+  if (IPH_PROTO(hdr) == IP_PROTO_UDP && p->len >= hlen + 4U)
+  {
+    const uint8_t *udp = (const uint8_t *)p->payload + hlen;
+    uint16_t dport = (uint16_t)((udp[2] << 8) | udp[3]);
+    if (dport == 319U || dport == 320U)
+    {
+      ptp_pkts++;
+      return 0;
+    }
+  }
   have_activity = 1;
 
   switch (IPH_PROTO(hdr))
@@ -98,16 +113,19 @@ void EthLog_Poll(void)
 
   if (!have_activity)
   {
-    return; /* stay silent on an idle link */
+    /* Stay silent on an idle link, but restart the window so background PTP
+     * doesn't pile up and inflate the next summary. */
+    ptp_pkts = rx_bytes = 0;
+    return;
   }
   have_activity = 0;
 
-  uint32_t total = icmp_pkts + tcp_pkts + udp_pkts + other_pkts;
-  printf("[eth] %lu pkt/s (icmp %lu tcp %lu udp %lu other %lu), %lu B/s\r\n",
+  uint32_t total = icmp_pkts + tcp_pkts + udp_pkts + ptp_pkts + other_pkts;
+  printf("[eth] %lu pkt/s (icmp %lu tcp %lu udp %lu ptp %lu other %lu), %lu B/s\r\n",
          (unsigned long)(total * 1000U / elapsed),
          (unsigned long)icmp_pkts, (unsigned long)tcp_pkts,
-         (unsigned long)udp_pkts, (unsigned long)other_pkts,
+         (unsigned long)udp_pkts, (unsigned long)ptp_pkts, (unsigned long)other_pkts,
          (unsigned long)(rx_bytes * 1000U / elapsed));
 
-  icmp_pkts = tcp_pkts = udp_pkts = other_pkts = rx_bytes = 0;
+  icmp_pkts = tcp_pkts = udp_pkts = ptp_pkts = other_pkts = rx_bytes = 0;
 }

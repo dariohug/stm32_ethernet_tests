@@ -57,6 +57,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define TRIG_BTN_Pin GPIO_PIN_13
+#define TRIG_BTN_GPIO_Port GPIOC
+#define TRIG_BTN_EXTI_IRQn EXTI15_10_IRQn
 #define RMII_MDC_Pin GPIO_PIN_1
 #define RMII_MDC_GPIO_Port GPIOC
 #define RMII_REF_CLK_Pin GPIO_PIN_1
@@ -71,6 +74,12 @@ void Error_Handler(void);
 #define RMII_RXD1_GPIO_Port GPIOC
 #define LED_GREEN_Pin GPIO_PIN_0
 #define LED_GREEN_GPIO_Port GPIOB
+#define TRIG1_Pin GPIO_PIN_9
+#define TRIG1_GPIO_Port GPIOE
+#define TRIG1_EXTI_IRQn EXTI9_5_IRQn
+#define TRIG2_Pin GPIO_PIN_11
+#define TRIG2_GPIO_Port GPIOE
+#define TRIG2_EXTI_IRQn EXTI15_10_IRQn
 #define RMII_TXD1_Pin GPIO_PIN_13
 #define RMII_TXD1_GPIO_Port GPIOB
 #define LED_RED_Pin GPIO_PIN_14

@@ -24,6 +24,8 @@
 /* USER CODE BEGIN Includes */
 #include "cmd_server.h"
 #include "eth_log.h"
+#include "ptp.h"
+#include "trig_events.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,6 +110,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   CmdServer_Init();
   EthLog_Init();
+  Ptp_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,6 +122,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     EthLog_Poll();
+    Ptp_Poll();
+    TrigEvents_Poll();
+    CmdServer_Poll();
   }
   /* USER CODE END 3 */
 }
@@ -246,15 +252,21 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin|LED_RED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : TRIG_BTN_Pin */
+  GPIO_InitStruct.Pin = TRIG_BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(TRIG_BTN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_GREEN_Pin LED_RED_Pin */
   GPIO_InitStruct.Pin = LED_GREEN_Pin|LED_RED_Pin;
@@ -263,12 +275,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : TRIG1_Pin TRIG2_Pin */
+  GPIO_InitStruct.Pin = TRIG1_Pin|TRIG2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LED_YELLOW_Pin */
   GPIO_InitStruct.Pin = LED_YELLOW_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_YELLOW_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(TRIG1_EXTI_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TRIG1_EXTI_IRQn);
+
+  HAL_NVIC_SetPriority(TRIG2_EXTI_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TRIG2_EXTI_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
