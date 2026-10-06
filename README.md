@@ -67,6 +67,16 @@ sudo ip link set <iface> up
 ping 192.168.1.10
 ```
 
+If NetworkManager manages the NIC and its profile is set to DHCP, it drops the
+address above when its DHCP attempt times out (about 45 s). Tests then fail
+partway through with `connection dropped`. Instead, switch the device to a
+static address for the current session. This needs no root and doesn't change
+the saved profile:
+
+```sh
+nmcli device modify <iface> ipv4.method manual ipv4.addresses 192.168.1.1/24
+```
+
 To change the board's address, edit `LWIP.IP_ADDRESS` / `NETMASK_ADDRESS` /
 `GATEWAY_ADDRESS` in the `.ioc` and regenerate.
 
